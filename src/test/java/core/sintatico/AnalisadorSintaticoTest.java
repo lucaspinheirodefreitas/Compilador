@@ -1,4 +1,4 @@
-package sintatico;
+package core.sintatico;
 
 public class AnalisadorSintaticoTest {
 }
