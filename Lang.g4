@@ -1,5 +1,4 @@
 grammar Lang;
-// parei com 1 hora da aula 10.
 @header {
     import br.com.ufabc.compiler.core.model.datastructure.Symbol;
     import br.com.ufabc.compiler.core.model.datastructure.Variable;
@@ -24,6 +23,7 @@ grammar Lang;
     private String _exprId;
     private String _exprContent;
     private String _exprDecision;
+    private String _joker;
 
     private Symbol symbol;
     private SymbolTable symbolTable = new SymbolTable();
@@ -32,6 +32,8 @@ grammar Lang;
     private Stack<ArrayList<AbstractCommand>> stackCommands = new Stack<ArrayList<AbstractCommand>>();
     private ArrayList<AbstractCommand> trueCondition;
     private ArrayList<AbstractCommand> falseCondition;
+    private ArrayList<Integer> types = new ArrayList<Integer>();
+    private ArrayList<String> names = new ArrayList<String>();
 
 
     private void variableVerifyExists(String name) {
@@ -53,6 +55,40 @@ grammar Lang;
         if(!symbolTable.exists(_name)) {
             throw new SemanticException("Symbol -> " + _name + " not declared.");
         }
+    }
+
+    private void assignmentVerifyType() {
+        _name       = names.get(0);
+        symbol      = symbolTable.getMap().get(_name);
+        _type    = ((Variable) symbol).getType();
+        types.add(_type);
+        for(int i=1; i<names.size(); i++) {
+            _name      = names.get(i);
+            if(!symbolTable.exists(_name)) {
+                _type = Variable.NUMBER;
+            } else {
+                symbol  = symbolTable.getMap().get(_name);
+                _type   = ((Variable) symbol).getType();
+            }
+            types.add(_type);
+        }
+
+        if(!verifyAllEqual()) {
+            for(int i=1; i<types.size(); i++) {
+                if(types.get(0) != types.get(i)) {
+                    throw new SemanticException("Incompatible types - variable: " + names.get(i) + " as type -> " + (types.get(i)==0 ? "NUMBER" : "TEXT")
+                                                + " and cannot be converted to expected type -> " + (types.get(0)==0 ? "NUMBER." : "TEXT."));
+                }
+            }
+
+        }
+    }
+
+    public boolean verifyAllEqual() {
+        return types
+                    .stream()
+                    .distinct()
+                    .count() <= 1;
     }
 
     public void listCommands() {
@@ -80,7 +116,6 @@ declare     : 'declare' type ID {
 
 type        : 'number'  {_type = Variable.NUMBER;}
             | 'text'    {_type = Variable.TEXT;}
-            | 'boolean' {_type = Variable.BOOLEAN;}
             ;
 
 bloco       :   {
@@ -90,12 +125,11 @@ bloco       :   {
             ;
 
 cmd         :
-                 cmdread    //{System.out.println("leitura");}
-                |cmdwrite   //{System.out.println("escrita");}
-                |cmdassign  //{System.out.println("atribuição");}
-                |cmdcond    //{System.out.println("condicional");}
+                 cmdread
+                |cmdwrite
+                |cmdassign
+                |cmdcond
                 |cmdloop
-                |cmdexp     //{System.out.println("expressão");}
             ;
 
 cmdread     : 'leia'    OP ID   {
@@ -121,28 +155,24 @@ cmdwrite    : 'escreva' OP ID   {
 cmdassign   :           ID      {
                                     variableVerifyNotExists(_input.LT(-1).getText());
                                     _exprId = _input.LT(-1).getText();
+                                    names.add(_exprId);
                                 }
                         ATTR    {
                                     _exprContent = "";
                                 }
                         expr    {
                                     CommandAssign command = new CommandAssign(_exprId, _exprContent);
+                                    assignmentVerifyType();
                                     stackCommands.peek().add(command);
                                 }
                         SC
             ;
 
-cmdcond     : 'se' OP (ID       {
-                                    variableVerifyNotExists(_input.LT(-1).getText());
-                                } | NUMBER)
-                                {
+cmdcond     : 'se' OP term      {
                                     _exprContent  += _input.LT(-1).getText();
                                     _exprDecision += _input.LT(-1).getText();
                                 }
-                                OPEREL (ID
-                                {
-                                  variableVerifyNotExists(_input.LT(-1).getText());
-                                } | NUMBER)
+                                OPEREL term
                                 {
                                     _exprContent  += _input.LT(-1).getText();
                                     _exprDecision += _input.LT(-1).getText();
@@ -170,26 +200,26 @@ cmdcond     : 'se' OP (ID       {
               )?
             ;
 
-cmdloop     : 'enquanto' OP (ID     {
-                                        variableVerifyNotExists(_input.LT(-1).getText());
-                                    } | NUMBER) OPEREL (ID   {
-                                                                variableVerifyNotExists(_input.LT(-1).getText());
-                                                            } | NUMBER) CP OK (cmd)+ CK
+cmdloop     : 'enquanto' OP term OPEREL term CP OK (cmd)+ CK
             ;
 
-cmdexp      : ID ATTR expr
+expr        : (term OPER  {
+                                    _exprContent += _input.LT(-1).getText();
+                                } precedencia | precedencia)+
             ;
 
-expr        : term (OPER
-                        {
+precedencia : OPERPREC  {
                             _exprContent += _input.LT(-1).getText();
-                        }
-                    term)*
+                        } term  {
+                                    names.add(_input.LT(-1).getText());
+                                } | term {
+                                          names.add(_input.LT(-1).getText());
+                                      }
             ;
 
-term        : (ID {
-                     variableVerifyNotExists(_input.LT(-1).getText());
-                 } | NUMBER)+
+term        : (ID   {
+                        variableVerifyNotExists(_input.LT(-1).getText());
+                    } | NUMBER)
             ;
 
 OP          : '('
@@ -204,7 +234,9 @@ SC          : ';'
             ;
 VIR         : ','
             ;
-OPER        : '+' | '-' | '*' | '/'
+OPERPREC    : '*' | '/'
+            ;
+OPER        : '+' | '-'
             ;
 OPEREL      : '==' | '!=' | '>=' | '<=' | '>' | '<'
             ;

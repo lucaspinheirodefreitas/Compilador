@@ -91,17 +91,17 @@ public interface LangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCmdloop(LangParser.CmdloopContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link LangParser#cmdexp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCmdexp(LangParser.CmdexpContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link LangParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitExpr(LangParser.ExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link LangParser#precedencia}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrecedencia(LangParser.PrecedenciaContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link LangParser#term}.
 	 * @param ctx the parse tree

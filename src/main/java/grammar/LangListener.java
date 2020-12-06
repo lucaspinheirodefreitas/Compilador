@@ -132,16 +132,6 @@ public interface LangListener extends ParseTreeListener {
 	 */
 	void exitCmdloop(LangParser.CmdloopContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link LangParser#cmdexp}.
-	 * @param ctx the parse tree
-	 */
-	void enterCmdexp(LangParser.CmdexpContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link LangParser#cmdexp}.
-	 * @param ctx the parse tree
-	 */
-	void exitCmdexp(LangParser.CmdexpContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link LangParser#expr}.
 	 * @param ctx the parse tree
 	 */
@@ -151,6 +141,16 @@ public interface LangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExpr(LangParser.ExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link LangParser#precedencia}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrecedencia(LangParser.PrecedenciaContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LangParser#precedencia}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrecedencia(LangParser.PrecedenciaContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link LangParser#term}.
 	 * @param ctx the parse tree

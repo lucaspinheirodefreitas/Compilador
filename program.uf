@@ -1,16 +1,15 @@
 programa
     declare number a, b, c;
     declare text t1;
-    declare boolean d;
 
-    a=1+2;
+    a:=3+3*2;
 
     leia(b);
 
     se (a == b) entao {
         escreva(c);
     } senao {
-        escreva(d);
+        escreva(t1);
     }
 
 fimprog;
