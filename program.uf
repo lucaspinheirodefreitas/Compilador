@@ -1,0 +1,16 @@
+programa
+    declare number a, b, c;
+    declare text t1;
+    declare boolean d;
+
+    a=1+2;
+
+    leia(b);
+
+    se (a == b) entao {
+        escreva(c);
+    } senao {
+        escreva(d);
+    }
+
+fimprog;
