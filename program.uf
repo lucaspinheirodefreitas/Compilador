@@ -1,6 +1,6 @@
 programa
     declare number a, b, c;
-    declare text t1;
+    declare text t1, t2, t3, t;
 
     a:=3+3*2;
 
@@ -10,6 +10,14 @@ programa
         escreva(c);
     } senao {
         escreva(t1);
+        leia(t2);
+    }
+
+    enquanto (a >= b) {
+        leia(c);
+        escreva(b);
+        leia(a);
+        c:=3-1;
     }
 
 fimprog;

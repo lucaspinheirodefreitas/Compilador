@@ -11,10 +11,12 @@ public class Variable extends Symbol {
 
     private int type;
     private String value;
+    private boolean referenced = false;
+    private boolean used = false;
 
     public Variable(String name, int type, String value) {
         super(name);
-        this.type = type;
+        this.type  = type;
         this.value = value;
     }
 

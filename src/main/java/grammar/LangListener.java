@@ -10,6 +10,7 @@ package grammar;
     import br.com.ufabc.compiler.core.structure.CommandWrite;
     import br.com.ufabc.compiler.core.structure.CommandAssign;
     import br.com.ufabc.compiler.core.structure.CommandConditional;
+    import br.com.ufabc.compiler.core.structure.CommandLoop;
     import br.com.ufabc.compiler.core.exception.SemanticException;
     import java.util.ArrayList;
     import java.util.Stack;
@@ -141,6 +142,16 @@ public interface LangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExpr(LangParser.ExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link LangParser#prec}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrec(LangParser.PrecContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LangParser#prec}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrec(LangParser.PrecContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link LangParser#precedencia}.
 	 * @param ctx the parse tree

@@ -10,6 +10,7 @@ package grammar;
     import br.com.ufabc.compiler.core.structure.CommandWrite;
     import br.com.ufabc.compiler.core.structure.CommandAssign;
     import br.com.ufabc.compiler.core.structure.CommandConditional;
+    import br.com.ufabc.compiler.core.structure.CommandLoop;
     import br.com.ufabc.compiler.core.exception.SemanticException;
     import java.util.ArrayList;
     import java.util.Stack;
@@ -96,6 +97,12 @@ public interface LangVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExpr(LangParser.ExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link LangParser#prec}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrec(LangParser.PrecContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link LangParser#precedencia}.
 	 * @param ctx the parse tree

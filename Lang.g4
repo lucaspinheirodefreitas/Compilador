@@ -9,6 +9,7 @@ grammar Lang;
     import br.com.ufabc.compiler.core.structure.CommandWrite;
     import br.com.ufabc.compiler.core.structure.CommandAssign;
     import br.com.ufabc.compiler.core.structure.CommandConditional;
+    import br.com.ufabc.compiler.core.structure.CommandLoop;
     import br.com.ufabc.compiler.core.exception.SemanticException;
     import java.util.ArrayList;
     import java.util.Stack;
@@ -22,7 +23,7 @@ grammar Lang;
     private String _writeId;
     private String _exprId;
     private String _exprContent;
-    private String _exprDecision;
+    private String _exprDecision="";
     private String _joker;
 
     private Symbol symbol;
@@ -32,6 +33,7 @@ grammar Lang;
     private Stack<ArrayList<AbstractCommand>> stackCommands = new Stack<ArrayList<AbstractCommand>>();
     private ArrayList<AbstractCommand> trueCondition;
     private ArrayList<AbstractCommand> falseCondition;
+    private ArrayList<AbstractCommand> loop;
     private ArrayList<Integer> types = new ArrayList<Integer>();
     private ArrayList<String> names = new ArrayList<String>();
 
@@ -50,14 +52,14 @@ grammar Lang;
 
     private void variableVerifyNotExists(String name) {
         _name  = name;
-        _value = null;
-        symbol = new Variable(_name, _type, _value);
         if(!symbolTable.exists(_name)) {
             throw new SemanticException("Symbol -> " + _name + " not declared.");
         }
     }
 
     private void assignmentVerifyType() {
+    //@todo -> a solução não é efetiva e gera nullpointerexception :: preciso revisar e ajustar para talvez passar a pegar os dados da symbolTable ou de algum outro ponto.
+    // exemplo de caso que gera null pointer é: t:=3+44;
         _name       = names.get(0);
         symbol      = symbolTable.getMap().get(_name);
         _type    = ((Variable) symbol).getType();
@@ -82,6 +84,25 @@ grammar Lang;
             }
 
         }
+    }
+
+    private void setVariableUsed(String name) {
+        symbol      = symbolTable.getMap().get(_name);
+        ((Variable) symbol).setUsed(true);
+    }
+
+    private void setVariableValue(String name, String value) {
+        symbol      = symbolTable.getMap().get(_name);
+        ((Variable) symbol).setValue(value);
+    }
+
+    private void setVariableReferenced(String name) {
+        symbol      = symbolTable.getMap().get(_name);
+        ((Variable) symbol).setReferenced(true);
+    }
+
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
     }
 
     public boolean verifyAllEqual() {
@@ -132,8 +153,7 @@ cmd         :
                 |cmdloop
             ;
 
-cmdread     : 'leia'    OP ID   {
-                                    variableVerifyNotExists(_input.LT(-1).getText());
+cmdread     : 'leia'    OP term   {
                                     _readId = _input.LT(-1).getText();
                                 }
                         CP SC   {
@@ -142,8 +162,7 @@ cmdread     : 'leia'    OP ID   {
                                 }
             ;
 
-cmdwrite    : 'escreva' OP ID   {
-                                     variableVerifyNotExists(_input.LT(-1).getText());
+cmdwrite    : 'escreva' OP term   {
                                      _writeId = _input.LT(-1).getText();
                                 }
                         CP SC   {
@@ -155,12 +174,14 @@ cmdwrite    : 'escreva' OP ID   {
 cmdassign   :           ID      {
                                     variableVerifyNotExists(_input.LT(-1).getText());
                                     _exprId = _input.LT(-1).getText();
+                                    setVariableUsed(_exprId); //@todo -> passivel de melhoria em conjunto com o método: setVariableValue
                                     names.add(_exprId);
                                 }
                         ATTR    {
                                     _exprContent = "";
                                 }
                         expr    {
+                                    setVariableValue(_exprId, _exprContent);
                                     CommandAssign command = new CommandAssign(_exprId, _exprContent);
                                     assignmentVerifyType();
                                     stackCommands.peek().add(command);
@@ -168,13 +189,11 @@ cmdassign   :           ID      {
                         SC
             ;
 
-cmdcond     : 'se' OP term      {
-                                    _exprContent  += _input.LT(-1).getText();
-                                    _exprDecision += _input.LT(-1).getText();
-                                }
-                                OPEREL term
+cmdcond     : 'se' OP term OPEREL term
                                 {
-                                    _exprContent  += _input.LT(-1).getText();
+                                    _exprDecision = "";
+                                    _exprDecision += _input.LT(-3).getText();
+                                    _exprDecision += _input.LT(-2).getText();
                                     _exprDecision += _input.LT(-1).getText();
                                 }
                                 CP 'entao' OK
@@ -200,25 +219,41 @@ cmdcond     : 'se' OP term      {
               )?
             ;
 
-cmdloop     : 'enquanto' OP term OPEREL term CP OK (cmd)+ CK
+cmdloop     : 'enquanto' OP term OPEREL term    {
+                                                    _exprDecision = "";
+                                                    _exprDecision += _input.LT(-3).getText();
+                                                    _exprDecision += _input.LT(-2).getText();
+                                                    _exprDecision += _input.LT(-1).getText();
+                                                } CP OK     {
+                                                                commands = new ArrayList<AbstractCommand>();
+                                                                stackCommands.push(commands);
+                                                            } (cmd)+ CK {
+                                                                           loop = stackCommands.pop();
+                                                                           CommandLoop cmd = new CommandLoop(_exprDecision, loop);
+                                                                           stackCommands.peek().add(cmd);
+                                                                        }
             ;
 
-expr        : (term OPER  {
+expr        : /*prec OP prec*/
+                                term OPER  {
                                     _exprContent += _input.LT(-1).getText();
-                                } precedencia | precedencia)+
+                                } prec | precedencia
             ;
 
-precedencia : OPERPREC  {
-                            _exprContent += _input.LT(-1).getText();
-                        } term  {
-                                    names.add(_input.LT(-1).getText());
-                                } | term {
-                                          names.add(_input.LT(-1).getText());
-                                      }
+prec        : precedencia OPERPREC expr | precedencia
+            ;
+
+//    E = E + T | E - T
+//    T = T * F | T / F
+//    F = ID | NUM | ( E )
+
+precedencia :   term  {names.add(_input.LT(-1).getText());}
             ;
 
 term        : (ID   {
-                        variableVerifyNotExists(_input.LT(-1).getText());
+                        _name=_input.LT(-1).getText();
+                        variableVerifyNotExists(_name);
+                        setVariableReferenced(_name);
                     } | NUMBER)
             ;
 

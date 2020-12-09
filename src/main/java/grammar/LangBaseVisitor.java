@@ -10,6 +10,7 @@ package grammar;
     import br.com.ufabc.compiler.core.structure.CommandWrite;
     import br.com.ufabc.compiler.core.structure.CommandAssign;
     import br.com.ufabc.compiler.core.structure.CommandConditional;
+    import br.com.ufabc.compiler.core.structure.CommandLoop;
     import br.com.ufabc.compiler.core.exception.SemanticException;
     import java.util.ArrayList;
     import java.util.Stack;
@@ -109,6 +110,13 @@ public class LangBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements L
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitExpr(LangParser.ExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPrec(LangParser.PrecContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

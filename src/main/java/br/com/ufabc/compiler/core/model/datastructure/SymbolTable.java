@@ -1,6 +1,5 @@
 package br.com.ufabc.compiler.core.model.datastructure;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.HashMap;

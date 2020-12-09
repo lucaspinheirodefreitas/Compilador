@@ -10,6 +10,7 @@ package grammar;
     import br.com.ufabc.compiler.core.structure.CommandWrite;
     import br.com.ufabc.compiler.core.structure.CommandAssign;
     import br.com.ufabc.compiler.core.structure.CommandConditional;
+    import br.com.ufabc.compiler.core.structure.CommandLoop;
     import br.com.ufabc.compiler.core.exception.SemanticException;
     import java.util.ArrayList;
     import java.util.Stack;
@@ -169,6 +170,18 @@ public class LangBaseListener implements LangListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitExpr(LangParser.ExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPrec(LangParser.PrecContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPrec(LangParser.PrecContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

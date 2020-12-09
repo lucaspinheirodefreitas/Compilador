@@ -10,6 +10,7 @@ package grammar;
     import br.com.ufabc.compiler.core.structure.CommandWrite;
     import br.com.ufabc.compiler.core.structure.CommandAssign;
     import br.com.ufabc.compiler.core.structure.CommandConditional;
+    import br.com.ufabc.compiler.core.structure.CommandLoop;
     import br.com.ufabc.compiler.core.exception.SemanticException;
     import java.util.ArrayList;
     import java.util.Stack;
@@ -108,7 +109,7 @@ public class LangLexer extends Lexer {
 	    private String _writeId;
 	    private String _exprId;
 	    private String _exprContent;
-	    private String _exprDecision;
+	    private String _exprDecision="";
 	    private String _joker;
 
 	    private Symbol symbol;
@@ -118,6 +119,7 @@ public class LangLexer extends Lexer {
 	    private Stack<ArrayList<AbstractCommand>> stackCommands = new Stack<ArrayList<AbstractCommand>>();
 	    private ArrayList<AbstractCommand> trueCondition;
 	    private ArrayList<AbstractCommand> falseCondition;
+	    private ArrayList<AbstractCommand> loop;
 	    private ArrayList<Integer> types = new ArrayList<Integer>();
 	    private ArrayList<String> names = new ArrayList<String>();
 
@@ -136,14 +138,14 @@ public class LangLexer extends Lexer {
 
 	    private void variableVerifyNotExists(String name) {
 	        _name  = name;
-	        _value = null;
-	        symbol = new Variable(_name, _type, _value);
 	        if(!symbolTable.exists(_name)) {
 	            throw new SemanticException("Symbol -> " + _name + " not declared.");
 	        }
 	    }
 
 	    private void assignmentVerifyType() {
+	    //@todo -> a solução não é efetiva e gera nullpointerexception :: preciso revisar e ajustar para talvez passar a pegar os dados da symbolTable ou de algum outro ponto.
+	    // exemplo de caso que gera null pointer é: t:=3+44;
 	        _name       = names.get(0);
 	        symbol      = symbolTable.getMap().get(_name);
 	        _type    = ((Variable) symbol).getType();
@@ -168,6 +170,25 @@ public class LangLexer extends Lexer {
 	            }
 
 	        }
+	    }
+
+	    private void setVariableUsed(String name) {
+	        symbol      = symbolTable.getMap().get(_name);
+	        ((Variable) symbol).setUsed(true);
+	    }
+
+	    private void setVariableValue(String name, String value) {
+	        symbol      = symbolTable.getMap().get(_name);
+	        ((Variable) symbol).setValue(value);
+	    }
+
+	    private void setVariableReferenced(String name) {
+	        symbol      = symbolTable.getMap().get(_name);
+	        ((Variable) symbol).setReferenced(true);
+	    }
+
+	    public SymbolTable getSymbolTable() {
+	        return symbolTable;
 	    }
 
 	    public boolean verifyAllEqual() {
