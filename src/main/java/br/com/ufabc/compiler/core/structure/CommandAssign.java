@@ -1,7 +1,9 @@
 package br.com.ufabc.compiler.core.structure;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
 public class CommandAssign extends AbstractCommand {
     private String id;

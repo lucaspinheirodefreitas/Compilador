@@ -49,24 +49,21 @@ public class Compiler {
     }
 
     public static void warningGenerator(grammar.LangParser parser) {
-        System.out.println("\n===============> AVISOS <===============\n");
-        verifyAssignedValue(parser);
+        System.out.println("\n==============================> AVISOS <==============================\n");
         verifyUsedVariable(parser);
-        System.out.println("\n===============> ****** <===============\n");
+        System.out.println("\n==============================> ****** <==============================\n");
     }
 
 
-    public static void verifyAssignedValue(grammar.LangParser parser) {
-        parser.getSymbolTable().getMap().forEach((key, value) -> {
-            if (!((Variable) value).isUsed())
-                System.out.println("A variável: " + key + ", foi declarada e não teve nenhum valor atribuído.");
-        });
-
-    }
     public static void verifyUsedVariable(grammar.LangParser parser) {
         parser.getSymbolTable().getMap().forEach((key, value) -> {
-            if (!((Variable) value).isReferenced())
-                System.out.println("A variável: " + key + ", foi declarada e não referenciada em nenhum ponto.");
+            if (!((Variable) value).isReferenced() && !((Variable) value).isUsed())
+                System.out.println("A variável " + key + " foi declarada, não teve nenhum valor atribuído e não foi referenciada em nenhum ponto.");
+            else if (!((Variable) value).isUsed())
+                System.out.println("A variável " + key + " foi declarada e não teve nenhum valor atribuído.");
+            else if(!((Variable) value).isReferenced())
+                System.out.println("A variável " + key + " foi declarada e não referenciada em nenhum ponto.");
         });
+
     }
 }

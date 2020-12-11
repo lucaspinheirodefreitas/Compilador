@@ -110,6 +110,12 @@ public interface LangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrecedencia(LangParser.PrecedenciaContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link LangParser#vazio}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVazio(LangParser.VazioContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link LangParser#term}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

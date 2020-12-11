@@ -57,32 +57,23 @@ grammar Lang;
         }
     }
 
-    private void assignmentVerifyType() {
-    //@todo -> a solução não é efetiva e gera nullpointerexception :: preciso revisar e ajustar para talvez passar a pegar os dados da symbolTable ou de algum outro ponto.
-    // exemplo de caso que gera null pointer é: t:=3+44;
-        _name       = names.get(0);
+    private void assignmentVerifyType(CommandAssign command) {
+        String REGEX_NUMBER = "(\\d+\\.?\\d*(\\*|\\/|\\+|\\-)?\\d*\\.?\\d*)*[0-9]*$";
+        String REGEX_TEXT = "^([a-z]|[A-Z])+.*";
+
+        _name       = command.getId();
         symbol      = symbolTable.getMap().get(_name);
         _type    = ((Variable) symbol).getType();
-        types.add(_type);
-        for(int i=1; i<names.size(); i++) {
-            _name      = names.get(i);
-            if(!symbolTable.exists(_name)) {
-                _type = Variable.NUMBER;
-            } else {
-                symbol  = symbolTable.getMap().get(_name);
-                _type   = ((Variable) symbol).getType();
-            }
-            types.add(_type);
-        }
 
-        if(!verifyAllEqual()) {
-            for(int i=1; i<types.size(); i++) {
-                if(types.get(0) != types.get(i)) {
-                    throw new SemanticException("Incompatible types - variable: " + names.get(i) + " as type -> " + (types.get(i)==0 ? "NUMBER" : "TEXT")
-                                                + " and cannot be converted to expected type -> " + (types.get(0)==0 ? "NUMBER." : "TEXT."));
-                }
-            }
+        String commands = command.getExpression();
 
+        boolean texto  = commands.matches(REGEX_TEXT);
+        boolean numero = commands.matches(REGEX_NUMBER);
+
+        if(_type == 0 && texto || _type == 1 && numero || !numero && !texto) {
+            throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted "
+                                        + (!numero && !texto ? "UNRECOGNIZED TYPE" : (numero ? "NUMBER" : "TEXT"))
+                                        + " to -> " + (_type==0 ? "NUMBER." : "TEXT."));
         }
     }
 
@@ -135,8 +126,8 @@ declare     : 'declare' type ID {
                                 })* SC
             ;
 
-type        : 'number'  {_type = Variable.NUMBER;}
-            | 'text'    {_type = Variable.TEXT;}
+type        : 'numero'  {_type = Variable.NUMBER;}
+            | 'texto'    {_type = Variable.TEXT;}
             ;
 
 bloco       :   {
@@ -153,18 +144,16 @@ cmd         :
                 |cmdloop
             ;
 
-cmdread     : 'leia'    OP term   {
-                                    _readId = _input.LT(-1).getText();
-                                }
+cmdread     : 'leia'    OP (term | ID   {_name = _input.LT(-1).getText(); setVariableReferenced(_name);})
+                                        {_readId = _input.LT(-1).getText();}
                         CP SC   {
                                     CommandRead command = new CommandRead(_readId);
                                     stackCommands.peek().add(command);
                                 }
             ;
 
-cmdwrite    : 'escreva' OP term   {
-                                     _writeId = _input.LT(-1).getText();
-                                }
+cmdwrite    : 'escreva' OP (term | ID   {_name = _input.LT(-1).getText(); setVariableReferenced(_name);})
+                                        {_writeId = _input.LT(-1).getText();}
                         CP SC   {
                                     CommandWrite command = new CommandWrite(_writeId);
                                     stackCommands.peek().add(command);
@@ -174,8 +163,7 @@ cmdwrite    : 'escreva' OP term   {
 cmdassign   :           ID      {
                                     variableVerifyNotExists(_input.LT(-1).getText());
                                     _exprId = _input.LT(-1).getText();
-                                    setVariableUsed(_exprId); //@todo -> passivel de melhoria em conjunto com o método: setVariableValue
-                                    names.add(_exprId);
+                                    setVariableUsed(_exprId);
                                 }
                         ATTR    {
                                     _exprContent = "";
@@ -183,13 +171,14 @@ cmdassign   :           ID      {
                         expr    {
                                     setVariableValue(_exprId, _exprContent);
                                     CommandAssign command = new CommandAssign(_exprId, _exprContent);
-                                    assignmentVerifyType();
+                                    assignmentVerifyType(command);
                                     stackCommands.peek().add(command);
                                 }
                         SC
             ;
 
-cmdcond     : 'se' OP term OPEREL term
+cmdcond     : 'se'  OP (ID {_name = _input.LT(-1).getText(); setVariableReferenced(_name);} | NUMBER)
+                    OPEREL (ID {_name = _input.LT(-1).getText(); setVariableReferenced(_name);} | NUMBER)
                                 {
                                     _exprDecision = "";
                                     _exprDecision += _input.LT(-3).getText();
@@ -219,7 +208,8 @@ cmdcond     : 'se' OP term OPEREL term
               )?
             ;
 
-cmdloop     : 'enquanto' OP term OPEREL term    {
+cmdloop     : 'enquanto'    OP (ID {_name = _input.LT(-1).getText(); setVariableReferenced(_name);} | NUMBER)
+                            OPEREL (ID {_name = _input.LT(-1).getText();} | NUMBER) {
                                                     _exprDecision = "";
                                                     _exprDecision += _input.LT(-3).getText();
                                                     _exprDecision += _input.LT(-2).getText();
@@ -234,27 +224,19 @@ cmdloop     : 'enquanto' OP term OPEREL term    {
                                                                         }
             ;
 
-expr        : /*prec OP prec*/
-                                term OPER  {
-                                    _exprContent += _input.LT(-1).getText();
-                                } prec | precedencia
+expr        : prec
             ;
 
-prec        : precedencia OPERPREC expr | precedencia
+prec        : OPER {_exprContent += _input.LT(-1).getText();} expr | precedencia expr | vazio
             ;
 
-//    E = E + T | E - T
-//    T = T * F | T / F
-//    F = ID | NUM | ( E )
-
-precedencia :   term  {names.add(_input.LT(-1).getText());}
+precedencia : OPERPREC {_exprContent += _input.LT(-1).getText();} prec | term
             ;
 
-term        : (ID   {
-                        _name=_input.LT(-1).getText();
-                        variableVerifyNotExists(_name);
-                        setVariableReferenced(_name);
-                    } | NUMBER)
+vazio       :
+            ;
+
+term        : (IDTEXT | NUMBER) {_exprContent += _input.LT(-1).getText();}
             ;
 
 OP          : '('
@@ -278,6 +260,8 @@ OPEREL      : '==' | '!=' | '>=' | '<=' | '>' | '<'
 ATTR        : ':='
             ;
 ID          : [a-z]([a-z] | [A-Z] | [0-9] | '_')*
+            ;
+IDTEXT      : ([a-z]|[A-Z])([a-z] | [A-Z] | [0-9] | '_')*
             ;
 NUMBER      : [0-9]+('.'[0-9]+)?
             ;

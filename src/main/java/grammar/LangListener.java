@@ -163,6 +163,16 @@ public interface LangListener extends ParseTreeListener {
 	 */
 	void exitPrecedencia(LangParser.PrecedenciaContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link LangParser#vazio}.
+	 * @param ctx the parse tree
+	 */
+	void enterVazio(LangParser.VazioContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LangParser#vazio}.
+	 * @param ctx the parse tree
+	 */
+	void exitVazio(LangParser.VazioContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link LangParser#term}.
 	 * @param ctx the parse tree
 	 */
