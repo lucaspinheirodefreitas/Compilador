@@ -1,0 +1,26 @@
+programa
+    declare numero a, b, c;
+    declare texto t1, t2;
+
+    a:=3+3.0*2+3-1*6.9/3;
+    a:=3+3;
+    a:=3*3;
+    a:=3;
+    t1:=T3+21;
+
+    leia(b);
+
+    se (a == b) entao {
+        escreva(SADc);
+    } senao {
+        escreva(3.5);
+    }
+
+    enquanto (a >= b) {
+        leia(c);
+        escreva(b);
+        leia(a);
+        c:=3-1;
+    }
+
+fimprog;
