@@ -10,6 +10,8 @@ import lombok.Setter;
 public abstract class Symbol {
     protected String name;
 
+    public abstract String generateJavaCode();
+
     @Override
     public String toString() {
         return "Symbol [name=" + name + "]";

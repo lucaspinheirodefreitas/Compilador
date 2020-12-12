@@ -1,4 +1,4 @@
-// Generated from /home/mohammed/Documentos/UFABC/Compiladores/Compilador/Lang.g4 by ANTLR 4.8
+// Generated from /home/mohammed/Documentos/UFABC/Compiladores/Compilador/Lang.g4 by ANTLR 4.9
 package grammar;
 
     import br.com.ufabc.compiler.core.model.datastructure.Symbol;
@@ -26,7 +26,7 @@ import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class LangLexer extends Lexer {
-	static { RuntimeMetaData.checkVersion("4.8", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.9", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -143,38 +143,74 @@ public class LangLexer extends Lexer {
 	        }
 	    }
 
-	    private void assignmentVerifyType(CommandAssign command) {
-	        String REGEX_NUMBER = "(\\d+\\.?\\d*(\\*|\\/|\\+|\\-)?\\d*\\.?\\d*)*[0-9]*$";
-	        String REGEX_TEXT = "^([a-z]|[A-Z])+.*";
+	    private int verifyVariableType(String name) {
+	        symbol      = symbolTable.getMap().get(name);
+	        return ((Variable) symbol).getType();
+	    }
 
-	        _name       = command.getId();
-	        symbol      = symbolTable.getMap().get(_name);
-	        _type    = ((Variable) symbol).getType();
+	    private void assignmentVerifyType(CommandAssign command) {
+	        String REGEX_NUMERIC_EXPRESSION = "(\\d+(\\.\\d+)?(\\*|\\/|\\+|\\-)?(\\d+\\.\\d+)?)*\\d*$";
+	        String REGEX_TEXT               = "^([a-z]|[A-Z])+.*";
+	        String REGEX_VARIABLE           = "^[a-z]([a-z] | [A-Z] | [0-9] | '_')*";
+	        String REGEX_NUMBER             = "\\d+(\\.\\d+)?";
+
+	        _type = verifyVariableType(command.getId());
 
 	        String commands = command.getExpression();
 
-	        boolean texto  = commands.matches(REGEX_TEXT);
-	        boolean numero = commands.matches(REGEX_NUMBER);
+	        boolean texto               = commands.matches(REGEX_TEXT);
+	        boolean numericExpression   = commands.matches(REGEX_NUMERIC_EXPRESSION);
+	        boolean variable            = false;
+	        boolean numero              = false;
 
-	        if(_type == 0 && texto || _type == 1 && numero || !numero && !texto) {
-	            throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted "
-	                                        + (!numero && !texto ? "UNRECOGNIZED TYPE" : (numero ? "NUMBER" : "TEXT"))
-	                                        + " to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+	        if(_type == 0 && numericExpression)
+	            return;
+
+	        String[] splitted = commands.split("[-+*/]");
+
+	        for (String split: splitted) {
+	            variable = split.matches(REGEX_VARIABLE);
+	            numero   = split.matches(REGEX_NUMBER);
+	            texto    = split.matches(REGEX_TEXT);
+
+	            if(variable) {
+	                if(symbolTable.exists(split)) {
+	                    int type = verifyVariableType(split);
+	                    if(!(type == _type)) {
+	                        throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.")
+	                        + "\nCannot be converted the " + (type==0 ? "NUMBER" : "TEXT") + " type of variable ["
+	                        + split + "] to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+	                    }
+	                } else if (!(texto && _type == 1)){
+	                    throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.")
+	                                            + "\nCannot be converted the value of ["
+	                                            + split + "] to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+	                }
+	            } else if (!variable && !numero) {
+	                throw new SemanticException("Incompatible types - expected type -> "
+	                + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted UNRECOGNIZED TYPE to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+	            }
 	        }
+
+	        /*if(_type == 0 && texto || _type == 1 && numericExpression || !numericExpression && !texto) {
+	            throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted "
+	                                        + (!numericExpression && !texto ? "UNRECOGNIZED TYPE" : (numericExpression ? "NUMBER" : "TEXT"))
+	                                        + " to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+	        }*/
 	    }
 
 	    private void setVariableUsed(String name) {
-	        symbol      = symbolTable.getMap().get(_name);
+	        symbol      = symbolTable.getMap().get(name);
 	        ((Variable) symbol).setUsed(true);
 	    }
 
 	    private void setVariableValue(String name, String value) {
-	        symbol      = symbolTable.getMap().get(_name);
+	        symbol      = symbolTable.getMap().get(name);
 	        ((Variable) symbol).setValue(value);
 	    }
 
 	    private void setVariableReferenced(String name) {
-	        symbol      = symbolTable.getMap().get(_name);
+	        symbol      = symbolTable.getMap().get(name);
 	        ((Variable) symbol).setReferenced(true);
 	    }
 
@@ -194,6 +230,11 @@ public class LangLexer extends Lexer {
 	            System.out.println(cmd);
 	        }
 	    }
+
+	    public void generateCode() {
+	        program.generateTarget();
+	    }
+
 
 
 	public LangLexer(CharStream input) {

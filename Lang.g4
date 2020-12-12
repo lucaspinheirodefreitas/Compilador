@@ -57,38 +57,68 @@ grammar Lang;
         }
     }
 
-    private void assignmentVerifyType(CommandAssign command) {
-        String REGEX_NUMBER = "(\\d+\\.?\\d*(\\*|\\/|\\+|\\-)?\\d*\\.?\\d*)*[0-9]*$";
-        String REGEX_TEXT = "^([a-z]|[A-Z])+.*";
+    private int verifyVariableType(String name) {
+        symbol      = symbolTable.getMap().get(name);
+        return ((Variable) symbol).getType();
+    }
 
-        _name       = command.getId();
-        symbol      = symbolTable.getMap().get(_name);
-        _type    = ((Variable) symbol).getType();
+    private void assignmentVerifyType(CommandAssign command) {
+        String REGEX_NUMERIC_EXPRESSION = "(\\d+(\\.\\d+)?(\\*|\\/|\\+|\\-)?(\\d+\\.\\d+)?)*\\d*$";
+        String REGEX_TEXT               = "^([a-z]|[A-Z])+.*";
+        String REGEX_VARIABLE           = "^[a-z]([a-z] | [A-Z] | [0-9] | '_')*";
+        String REGEX_NUMBER             = "\\d+(\\.\\d+)?";
+
+        _type = verifyVariableType(command.getId());
 
         String commands = command.getExpression();
 
-        boolean texto  = commands.matches(REGEX_TEXT);
-        boolean numero = commands.matches(REGEX_NUMBER);
+        boolean texto               = commands.matches(REGEX_TEXT);
+        boolean numericExpression   = commands.matches(REGEX_NUMERIC_EXPRESSION);
+        boolean variable            = false;
+        boolean numero              = false;
 
-        if(_type == 0 && texto || _type == 1 && numero || !numero && !texto) {
-            throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted "
-                                        + (!numero && !texto ? "UNRECOGNIZED TYPE" : (numero ? "NUMBER" : "TEXT"))
-                                        + " to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+        if(_type == 0 && numericExpression)
+            return;
+
+        String[] splitted = commands.split("[-+*/]");
+
+        for (String split: splitted) {
+            variable = split.matches(REGEX_VARIABLE);
+            numero   = split.matches(REGEX_NUMBER);
+            texto    = split.matches(REGEX_TEXT);
+
+            if(variable) {
+                if(symbolTable.exists(split)) {
+                    int type = verifyVariableType(split);
+                    if(!(type == _type)) {
+                        throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.")
+                        + "\nCannot be converted the " + (type==0 ? "NUMBER" : "TEXT") + " type of variable ["
+                        + split + "] to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+                    }
+                } else if (!(texto && _type == 1)){
+                    throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.")
+                                            + "\nCannot be converted the value of ["
+                                            + split + "] to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+                }
+            } else if (!variable && !numero) {
+                throw new SemanticException("Incompatible types - expected type -> "
+                + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted UNRECOGNIZED TYPE to -> " + (_type==0 ? "NUMBER." : "TEXT."));
+            }
         }
     }
 
     private void setVariableUsed(String name) {
-        symbol      = symbolTable.getMap().get(_name);
+        symbol      = symbolTable.getMap().get(name);
         ((Variable) symbol).setUsed(true);
     }
 
     private void setVariableValue(String name, String value) {
-        symbol      = symbolTable.getMap().get(_name);
+        symbol      = symbolTable.getMap().get(name);
         ((Variable) symbol).setValue(value);
     }
 
     private void setVariableReferenced(String name) {
-        symbol      = symbolTable.getMap().get(_name);
+        symbol      = symbolTable.getMap().get(name);
         ((Variable) symbol).setReferenced(true);
     }
 
@@ -96,21 +126,20 @@ grammar Lang;
         return symbolTable;
     }
 
-    public boolean verifyAllEqual() {
-        return types
-                    .stream()
-                    .distinct()
-                    .count() <= 1;
-    }
-
     public void listCommands() {
         for(AbstractCommand cmd : program.getCommands()) {
             System.out.println(cmd);
         }
     }
+
+    public void generateCode() {
+        program.generateTarget();
+    }
+
 }
 executable  : 'programa' dec bloco 'fimprog;'
                 {
+                    program.setVarTable(symbolTable);
                     program.setCommands(stackCommands.pop());
                 }
             ;
@@ -144,16 +173,15 @@ cmd         :
                 |cmdloop
             ;
 
-cmdread     : 'leia'    OP (term | ID   {_name = _input.LT(-1).getText(); setVariableReferenced(_name);})
-                                        {_readId = _input.LT(-1).getText();}
+cmdread     : 'leia'    OP ID   {_readId = _input.LT(-1).getText(); setVariableUsed(_readId);}
                         CP SC   {
-                                    CommandRead command = new CommandRead(_readId);
+                                    Variable variable = (Variable) symbolTable.getMap().get(_readId);
+                                    CommandRead command = new CommandRead(_readId, variable);
                                     stackCommands.peek().add(command);
                                 }
             ;
 
-cmdwrite    : 'escreva' OP (term | ID   {_name = _input.LT(-1).getText(); setVariableReferenced(_name);})
-                                        {_writeId = _input.LT(-1).getText();}
+cmdwrite    : 'escreva' OP ID   {_writeId = _input.LT(-1).getText(); setVariableReferenced(_writeId);}
                         CP SC   {
                                     CommandWrite command = new CommandWrite(_writeId);
                                     stackCommands.peek().add(command);
@@ -236,7 +264,7 @@ precedencia : OPERPREC {_exprContent += _input.LT(-1).getText();} prec | term
 vazio       :
             ;
 
-term        : (IDTEXT | NUMBER) {_exprContent += _input.LT(-1).getText();}
+term        : (ID {_name = _input.LT(-1).getText(); setVariableReferenced(_name);} | IDTEXT | NUMBER) {_exprContent += _input.LT(-1).getText();}
             ;
 
 OP          : '('

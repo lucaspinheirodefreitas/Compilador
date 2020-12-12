@@ -1,5 +1,6 @@
 package br.com.ufabc.compiler.core.structure;
 
+import br.com.ufabc.compiler.core.model.datastructure.Variable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +12,7 @@ public class CommandAssign extends AbstractCommand {
 
     @Override
     public String generateJavaCode() {
-        return null;
+        return id + " = "+expression+";";
     }
 
     @Override

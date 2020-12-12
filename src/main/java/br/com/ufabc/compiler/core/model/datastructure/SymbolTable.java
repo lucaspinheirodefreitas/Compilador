@@ -2,12 +2,11 @@ package br.com.ufabc.compiler.core.model.datastructure;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Getter
 public class SymbolTable {
-    // @todo -> validar o comportamento do @Getter no caso de hashMap
-    // @todo -> entender o funcionamento do HashMap.
     private HashMap<String, Symbol> map;
 
     public SymbolTable() {
@@ -20,5 +19,13 @@ public class SymbolTable {
 
     public boolean exists(String symbolName) {
         return map.get(symbolName) != null;
+    }
+
+    public ArrayList<Symbol> getAll() {
+        ArrayList<Symbol> lista = new ArrayList<Symbol>();
+        for (Symbol symbol : map.values()) {
+            lista.add(symbol);
+        }
+        return lista;
     }
 }

@@ -4,7 +4,6 @@
 **Professor:** Francisco Isidro Massetto.\
 **QS - 2020**
 ***
-**Conceitos**
 - Requisitos:
     -
     - 2 tipos de variáveis *(Obgrigatório que um dos tipos seja texto)*;

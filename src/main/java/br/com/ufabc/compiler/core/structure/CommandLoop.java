@@ -11,7 +11,14 @@ public class CommandLoop extends AbstractCommand{
 
     @Override
     public String generateJavaCode() {
-        return null;
+
+        StringBuilder str = new StringBuilder();
+        str.append("while ("+condition+") {\n");
+        for (AbstractCommand cmd: loop) {
+            str.append(cmd.generateJavaCode() + "\n");
+        }
+        str.append("}");
+        return str.toString();
     }
 
     @Override
