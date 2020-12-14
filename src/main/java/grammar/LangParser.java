@@ -159,7 +159,7 @@ public class LangParser extends Parser {
 	    private void assignmentVerifyType(CommandAssign command) {
 	        String REGEX_NUMERIC_EXPRESSION = "\\d+(\\.\\d+)?((\\*|\\/|\\+|\\-)?\\d+(\\.\\d+)?)*";
 	        String REGEX_TEXT               = "^([a-z]|[A-Z])+.*";
-	        String REGEX_VARIABLE           = "^[a-z]([a-z] | [A-Z] | [0-9] | '_')*";
+	        String REGEX_VARIABLE           = "[a-z]+([a-z]|[A-Z]|[0-9]|'_')*";
 	        String REGEX_NUMBER             = "\\d+(\\.\\d+)?";
 
 	        _type = verifyVariableType(command.getId());
