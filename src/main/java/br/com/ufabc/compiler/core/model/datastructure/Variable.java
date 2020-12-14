@@ -6,8 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Variable extends Symbol {
-    public static final int NUMBER  = 0;
-    public static final int TEXT    = 1;
+    public static final int NUMBER = 0;
+    public static final int TEXT = 1;
 
     private int type;
     private String value;
@@ -16,7 +16,7 @@ public class Variable extends Symbol {
 
     public Variable(String name, int type, String value) {
         super(name);
-        this.type  = type;
+        this.type = type;
         this.value = value;
     }
 
@@ -27,5 +27,15 @@ public class Variable extends Symbol {
                 ", value='" + value + '\'' +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    public String generateJavaCode() {
+        String str;
+        if (type == NUMBER) {
+            str = "double ";
+        } else {
+            str = "String ";
+        }
+        return str + " " + super.name + ";";
     }
 }

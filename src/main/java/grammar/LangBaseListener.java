@@ -1,4 +1,4 @@
-// Generated from /home/mohammed/Documentos/UFABC/Compiladores/Compilador/Lang.g4 by ANTLR 4.8
+// Generated from /home/mohammed/Documentos/UFABC/Compiladores/Compilador/Lang.g4 by ANTLR 4.9
 package grammar;
 
     import br.com.ufabc.compiler.core.model.datastructure.Symbol;

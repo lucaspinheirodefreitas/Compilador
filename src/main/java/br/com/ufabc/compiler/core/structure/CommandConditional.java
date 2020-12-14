@@ -12,7 +12,21 @@ public class CommandConditional extends AbstractCommand {
 
     @Override
     public String generateJavaCode() {
-        return null;
+        StringBuilder str = new StringBuilder();
+        str.append("if ("+condition+") {\n");
+        for (AbstractCommand cmd: trueCondition) {
+            str.append(cmd.generateJavaCode() + "\n");
+        }
+        str.append("}");
+        if (falseCondition.size() > 0) {
+            str.append("else {\n");
+            for (AbstractCommand cmd: falseCondition) {
+                str.append(cmd.generateJavaCode() + "\n");
+            }
+            str.append("}\n");
+
+        }
+        return str.toString();
     }
 
     @Override

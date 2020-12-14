@@ -1,19 +1,17 @@
 programa
-    declare numero a, b, c;
+    declare numero a, b, c, d;
     declare texto t1, t2;
 
-    a:=3+3.0*2+3-1*6.9/3;
-    a:=3+3;
-    a:=3*3;
-    a:=3;
-    t1:=T3+21;
-
+    leia(a);
     leia(b);
+    leia(t1);
+
+    a:=3+3.0*2+3-1*6.9/3+d;
 
     se (a == b) entao {
-        escreva(SADc);
+        escreva(a);
     } senao {
-        escreva(3.5);
+        escreva(b);
     }
 
     enquanto (a >= b) {

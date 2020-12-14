@@ -12,9 +12,6 @@
         <!-- VARIÁVEIS DE AMBIENTE -->
         <org.mapstruct.version>1.4.1.Final</org.mapstruct.version>
         <org.projectlombok.version>1.18.16</org.projectlombok.version>
-<!--
-        <antlr.dir>src/main/java</antlr.dir>
--->
     </properties>
     <build>
         <plugins>
@@ -34,27 +31,6 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-           <!-- <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.8</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${antlr.dir}</sourceDirectory>
-                            <listener>true</listener>
-                            <visitor>true</visitor>
-                            <arguments>
-                                <argument>-package</argument>
-                                <argument>org.boazglean.dabar.parser</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>-->
         </plugins>
     </build>
 
@@ -70,7 +46,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.8</version>
+            <version>4.9</version>
         </dependency>
     </dependencies>
 </project>

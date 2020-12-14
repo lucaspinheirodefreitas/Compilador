@@ -8,12 +8,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import java.util.Scanner;
 
 public class Compiler {
-    /*@todo
-    * Ajuste na exception com validação de tipos (gerando NullPointerException).
-    * Ajuste na regra de expressão pois está incorreta e não respeitando a ordem de predecessão de operadores.
-    * Construção de código gerador java caso necessário => aguardando retorno do professor pra entender o que é:
-    * "Os comandos de leitura do teclado e de impressão na tela devem ser disponibilizados."
-    * */
     public static void main(String[] args) {
         try {
             grammar.LangLexer lexer;
@@ -33,13 +27,13 @@ public class Compiler {
                     dados+=line;
                 }
                 lexer = new grammar.LangLexer(CharStreams.fromString(dados));
-
             }
 
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
             parser = new grammar.LangParser(tokenStream);
             parser.executable();
             parser.listCommands();
+            parser.generateCode();
             warningGenerator(parser);
         } catch (SemanticException ex) {
             System.err.println("Semantic Error: " + ex.getMessage());
