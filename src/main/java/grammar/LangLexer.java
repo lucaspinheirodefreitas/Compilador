@@ -110,7 +110,6 @@ public class LangLexer extends Lexer {
 	    private String _exprId;
 	    private String _exprContent;
 	    private String _exprDecision="";
-	    private String _joker;
 
 	    private Symbol symbol;
 	    private SymbolTable symbolTable = new SymbolTable();
@@ -149,7 +148,7 @@ public class LangLexer extends Lexer {
 	    }
 
 	    private void assignmentVerifyType(CommandAssign command) {
-	        String REGEX_NUMERIC_EXPRESSION = "(\\d+(\\.\\d+)?(\\*|\\/|\\+|\\-)?(\\d+\\.\\d+)?)*\\d*$";
+	        String REGEX_NUMERIC_EXPRESSION = "\\d+(\\.\\d+)?((\\*|\\/|\\+|\\-)?\\d+(\\.\\d+)?)*";
 	        String REGEX_TEXT               = "^([a-z]|[A-Z])+.*";
 	        String REGEX_VARIABLE           = "^[a-z]([a-z] | [A-Z] | [0-9] | '_')*";
 	        String REGEX_NUMBER             = "\\d+(\\.\\d+)?";
@@ -175,6 +174,7 @@ public class LangLexer extends Lexer {
 
 	            if(variable) {
 	                if(symbolTable.exists(split)) {
+	                    setVariableReferenced(split);
 	                    int type = verifyVariableType(split);
 	                    if(!(type == _type)) {
 	                        throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.")
@@ -191,20 +191,16 @@ public class LangLexer extends Lexer {
 	                + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted UNRECOGNIZED TYPE to -> " + (_type==0 ? "NUMBER." : "TEXT."));
 	            }
 	        }
-
-	        /*if(_type == 0 && texto || _type == 1 && numericExpression || !numericExpression && !texto) {
-	            throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.") + "\nCannot be converted "
-	                                        + (!numericExpression && !texto ? "UNRECOGNIZED TYPE" : (numericExpression ? "NUMBER" : "TEXT"))
-	                                        + " to -> " + (_type==0 ? "NUMBER." : "TEXT."));
-	        }*/
 	    }
 
 	    private void setVariableUsed(String name) {
+	        variableVerifyNotExists(name);
 	        symbol      = symbolTable.getMap().get(name);
 	        ((Variable) symbol).setUsed(true);
 	    }
 
 	    private void setVariableValue(String name, String value) {
+	        variableVerifyNotExists(name);
 	        symbol      = symbolTable.getMap().get(name);
 	        ((Variable) symbol).setValue(value);
 	    }
@@ -216,13 +212,6 @@ public class LangLexer extends Lexer {
 
 	    public SymbolTable getSymbolTable() {
 	        return symbolTable;
-	    }
-
-	    public boolean verifyAllEqual() {
-	        return types
-	                    .stream()
-	                    .distinct()
-	                    .count() <= 1;
 	    }
 
 	    public void listCommands() {

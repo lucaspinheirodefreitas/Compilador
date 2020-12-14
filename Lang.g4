@@ -24,7 +24,6 @@ grammar Lang;
     private String _exprId;
     private String _exprContent;
     private String _exprDecision="";
-    private String _joker;
 
     private Symbol symbol;
     private SymbolTable symbolTable = new SymbolTable();
@@ -63,7 +62,7 @@ grammar Lang;
     }
 
     private void assignmentVerifyType(CommandAssign command) {
-        String REGEX_NUMERIC_EXPRESSION = "(\\d+(\\.\\d+)?(\\*|\\/|\\+|\\-)?(\\d+\\.\\d+)?)*\\d*$";
+        String REGEX_NUMERIC_EXPRESSION = "\\d+(\\.\\d+)?((\\*|\\/|\\+|\\-)?\\d+(\\.\\d+)?)*";
         String REGEX_TEXT               = "^([a-z]|[A-Z])+.*";
         String REGEX_VARIABLE           = "^[a-z]([a-z] | [A-Z] | [0-9] | '_')*";
         String REGEX_NUMBER             = "\\d+(\\.\\d+)?";
@@ -89,6 +88,7 @@ grammar Lang;
 
             if(variable) {
                 if(symbolTable.exists(split)) {
+                    setVariableReferenced(split);
                     int type = verifyVariableType(split);
                     if(!(type == _type)) {
                         throw new SemanticException("Incompatible types - expected type -> " + (_type==0 ? "NUMBER." : "TEXT.")
@@ -108,11 +108,13 @@ grammar Lang;
     }
 
     private void setVariableUsed(String name) {
+        variableVerifyNotExists(name);
         symbol      = symbolTable.getMap().get(name);
         ((Variable) symbol).setUsed(true);
     }
 
     private void setVariableValue(String name, String value) {
+        variableVerifyNotExists(name);
         symbol      = symbolTable.getMap().get(name);
         ((Variable) symbol).setValue(value);
     }
@@ -264,7 +266,7 @@ precedencia : OPERPREC {_exprContent += _input.LT(-1).getText();} prec | term
 vazio       :
             ;
 
-term        : (ID {_name = _input.LT(-1).getText(); setVariableReferenced(_name);} | IDTEXT | NUMBER) {_exprContent += _input.LT(-1).getText();}
+term        : (ID | IDTEXT | NUMBER) {_exprContent += _input.LT(-1).getText();}
             ;
 
 OP          : '('

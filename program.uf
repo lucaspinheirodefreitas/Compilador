@@ -12,7 +12,6 @@ programa
         escreva(a);
     } senao {
         escreva(b);
-        escreva(t2);
     }
 
     enquanto (a >= b) {

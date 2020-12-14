@@ -27,7 +27,6 @@ public class Compiler {
                     dados+=line;
                 }
                 lexer = new grammar.LangLexer(CharStreams.fromString(dados));
-
             }
 
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
